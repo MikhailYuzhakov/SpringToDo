@@ -51,7 +51,7 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
 
     @Override
     public void update(Long id, Task task) {
-        String SQL = "UPDATE tasks SET title = ?, description = ?, completed = ? created_at = ? updated_at = ? WHERE id = ?";
+        String SQL = "UPDATE tasks SET title = ?, description = ?, completed = ?, created_at = ?, updated_at = ? WHERE id = ?";
         jdbcTemplate.update(SQL, task.getTitle(), task.getDescription(), task.isCompleted(), task.getCreated_at(), task.getUpdated_at(), task.getId());
     }
 }
