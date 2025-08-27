@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: SpringToDo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskmanager
+    username: postgres
+    password: 10031998
+    driver-class-name: org.postgresql.Driver
