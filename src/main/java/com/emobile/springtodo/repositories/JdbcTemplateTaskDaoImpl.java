@@ -19,7 +19,7 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
     public Optional<List<Task>> findAll() {
         String SQL = "SELECT * FROM tasks";
         try {
-            List<Task> task = jdbcTemplate.query(SQL, new TaskMapper());
+            List<Task> task = jdbcTemplate.query(SQL, new RowMapperImpl());
             return Optional.of(task);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -30,7 +30,7 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
     public Optional<Task> findById(Long id) {
         String SQL = "SELECT * FROM tasks WHERE id = ?";
         try {
-            Task task = jdbcTemplate.queryForObject(SQL, new TaskMapper(), id);
+            Task task = jdbcTemplate.queryForObject(SQL, new RowMapperImpl(), id);
             return Optional.ofNullable(task);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();

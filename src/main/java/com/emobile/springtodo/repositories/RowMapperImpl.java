@@ -5,9 +5,8 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 
-public class TaskMapper implements RowMapper<Task> {
+public class RowMapperImpl implements RowMapper<Task> {
 
     @Override
     public Task mapRow(ResultSet rs, int rowNum) throws SQLException {

@@ -2,7 +2,7 @@ package com.emobile.springtodo.controllers;
 
 import com.emobile.springtodo.dto.TaskDTO;
 import com.emobile.springtodo.model.Task;
-import com.emobile.springtodo.services.TaskService;
+import com.emobile.springtodo.services.TaskServiceInterface;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
-    private final TaskService service;
+    private final TaskServiceInterface service;
 
-    public TaskController(TaskService service) {
+    public TaskController(TaskServiceInterface service) {
         this.service = service;
     }
 
