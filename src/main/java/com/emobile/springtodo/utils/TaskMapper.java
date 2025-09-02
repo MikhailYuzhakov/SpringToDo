@@ -3,15 +3,14 @@ import com.emobile.springtodo.dto.TaskCreateRequest;
 import com.emobile.springtodo.dto.TaskResponse;
 import com.emobile.springtodo.dto.TaskUpdateRequest;
 import com.emobile.springtodo.model.Task;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+@Mapper(componentModel = "spring")
 public interface TaskMapper {
-    TaskMapper INSTANCE = Mappers.getMapper(TaskMapper.class);
 
     // Маппинг из Entity в ResponseDTO
     @Mapping(source = "created_at", target = "createdAt")
@@ -28,6 +27,7 @@ public interface TaskMapper {
     Task toEntity(TaskCreateRequest request);
 
     // Маппинг из UpdateRequest DTO в Entity (обновление существующей сущности)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "created_at", ignore = true)
     @Mapping(target = "updated_at", expression = "java(java.time.LocalDateTime.now())")

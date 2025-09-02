@@ -1,18 +1,23 @@
 package com.emobile.springtodo.services;
 
 import com.emobile.springtodo.dto.TaskCreateRequest;
-import com.emobile.springtodo.dto.TaskDTO;
 import com.emobile.springtodo.dto.TaskResponse;
+import com.emobile.springtodo.dto.TaskUpdateRequest;
 import com.emobile.springtodo.exceptions.TaskNotFoundException;
 import com.emobile.springtodo.model.Task;
 import com.emobile.springtodo.repositories.TaskDao;
 import com.emobile.springtodo.utils.TaskMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,61 +29,86 @@ public class TaskService implements TaskServiceInterface {
     private final MetricsService metricsService;
 
     @Override
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll()
+    @Cacheable(value = "tasks", key = "'all'", sync = true)
+    public List<TaskResponse> getAllTasks() {
+        List<Task> tasks = taskRepository.findAll()
                 .orElseThrow(() -> new TaskNotFoundException("Tasks not found"));
+        return tasks.stream().map(taskMapper::toResponse).toList();
     }
 
     @Override
-    public Task get(Long taskId) {
-        return taskRepository.findById(taskId)
+    @Cacheable(value = "task", key = "#taskId", sync = true)
+    public TaskResponse get(Long taskId) {
+        Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with id " + taskId));
+        return taskMapper.toResponse(task);
     }
 
+    @Transactional
+    @Caching(
+            put = @CachePut(value = "task", key = "#result.id"),
+            evict = {
+                    @CacheEvict(value = "tasks", allEntries = true),
+                    @CacheEvict(value = "tasks_completed", allEntries = true),
+                    @CacheEvict(value = "tasks_active", allEntries = true)
+            }
+    )
     @Override
     public TaskResponse create(TaskCreateRequest taskCreateRequest) {
-        long startTime = System.currentTimeMillis();
-
+        long start = System.currentTimeMillis();
         try {
-            log.info("Creating new todo: {}", request.getTitle());
+            log.info("Creating new todo: {}", taskCreateRequest.getTitle());
             Task task = taskMapper.toEntity(taskCreateRequest);
-            taskRepository.save(task);
+            Task newTask = taskRepository.save(task);
 
             metricsService.incrementCreatedTasks();
             metricsService.recordTaskMetrics(task);
 
-            return taskMapper.toResponse(task);
+            return taskMapper.toResponse(newTask);
         } finally {
-            long duration = System.currentTimeMillis() - startTime;
-            metricsService.recordTaskCreationTime(duration);
+            metricsService.recordTaskCreationTime(System.currentTimeMillis() - start);
         }
-
-
-        Task task = new Task();
-        task.setDescription(taskDTO.getDescription());
-        task.setTitle(taskDTO.getTitle());
-        task.setCompleted(taskDTO.isCompleted());
-        task.setCreated_at(LocalDateTime.now());
-        task.setUpdated_at(LocalDateTime.now());
-        taskRepository.save(task);
-        return task;
     }
 
+    @Transactional
+    @Caching(
+            put = @CachePut(value = "task", key = "#id"),
+            evict = {
+                    @CacheEvict(value = "tasks", allEntries = true),
+                    @CacheEvict(value = "tasks_completed", allEntries = true),
+                    @CacheEvict(value = "tasks_active", allEntries = true)
+            }
+    )
     @Override
-    public Task updateTask(Long id, TaskDTO taskDetails) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with id " + id));
-        task.setTitle(taskDetails.getTitle());
-        task.setDescription(taskDetails.getDescription());
-        task.setCompleted(taskDetails.isCompleted());
-        taskRepository.update(id, task);
-        return task;
+    public TaskResponse updateTask(Long id, TaskUpdateRequest taskDetails) {
+        long start = System.currentTimeMillis();
+        try {
+            log.info("Updating task with id: {}", id);
+            Task task = taskRepository.findById(id)
+                    .orElseThrow(() -> new TaskNotFoundException("Task not found with id " + id));
+
+            taskMapper.updateEntityFromRequest(taskDetails, task);
+            Task updatedTask = taskRepository.update(id, task);
+
+            log.info("Task updated successfully: {}", id);
+            return taskMapper.toResponse(updatedTask);
+        } finally {
+            metricsService.recordTaskUpdateTime(System.currentTimeMillis() - start);
+        }
     }
 
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "task", key = "#id"),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "tasks_completed", allEntries = true),
+            @CacheEvict(value = "tasks_active", allEntries = true)
+    })
     @Override
     public void deleteTask(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with id " + id));
         taskRepository.delete(task);
+        metricsService.incrementDeletedTasks();
     }
 }

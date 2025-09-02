@@ -1,20 +1,27 @@
 package com.emobile.springtodo.services;
 
 import com.emobile.springtodo.dto.TaskCreateRequest;
-import com.emobile.springtodo.dto.TaskDTO;
 import com.emobile.springtodo.dto.TaskResponse;
-import com.emobile.springtodo.model.Task;
+import com.emobile.springtodo.dto.TaskUpdateRequest;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 
 public interface TaskServiceInterface {
-    public List<Task> getAllTasks();
-    public Task get(Long taskId);
-    public Task create(TaskDTO taskDTO);
+    public List<TaskResponse> getAllTasks();
+    public TaskResponse get(Long taskId);
 
     TaskResponse create(TaskCreateRequest taskCreateRequest);
 
-    public Task updateTask(Long id, TaskDTO taskDetails);
+    @Caching(evict = {
+            @CacheEvict(value = "task", key = "#id"),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "tasks_completed", allEntries = true),
+            @CacheEvict(value = "tasks_active", allEntries = true)
+    })
+    TaskResponse updateTask(Long id, TaskUpdateRequest taskDetails);
+
     public void deleteTask(Long id);
 
 }

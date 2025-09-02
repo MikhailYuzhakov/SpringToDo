@@ -1,5 +1,7 @@
 package com.emobile.springtodo.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,10 +14,22 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskResponse {
+    @Positive(message = "id must be positive")
+    @NotNull
     private Long id;
+
+    @NotNull
     private String title;
+    @NotNull
+
     private String description;
+
+    @NotNull
     private Boolean completed;
+
+    @NotNull
     private LocalDateTime createdAt;
+
+    @NotNull
     private LocalDateTime updatedAt;
 }

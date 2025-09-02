@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface TaskDao {
     Optional<List<Task>> findAll();
     Optional<Task> findById(Long id);
-    void save(Task task);
+    Task save(Task task);
     void delete(Task task);
-    void update(Long id, Task task);
+    Task update(Long id, Task task);
 }

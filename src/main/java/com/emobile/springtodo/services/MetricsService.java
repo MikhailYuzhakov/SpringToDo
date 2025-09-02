@@ -5,12 +5,15 @@ import io.micrometer.core.instrument.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class MetricsService implements MetricsServiceInterface {
@@ -88,7 +91,7 @@ public class MetricsService implements MetricsServiceInterface {
             recordTitleLength(task.getTitle().length());
         }
 
-        if (Boolean.TRUE.equals(task.getCompleted())) {
+        if (task.isCompleted()) {
             incrementCompletedTasks();
         }
     }
@@ -136,33 +139,14 @@ public class MetricsService implements MetricsServiceInterface {
     }
 
     @Override
-    public void recordTaskCompletionTime(long milliseconds) {
-        taskCompletionTimer.record(milliseconds, TimeUnit.MILLISECONDS);
-        log.debug("Task completion time recorded: {} ms", milliseconds);
-    }
-
-    @Override
     public void recordTaskCreationTime(long milliseconds) {
         taskCreationTimer.record(milliseconds, TimeUnit.MILLISECONDS);
         log.debug("Task creation time recorded: {} ms", milliseconds);
     }
 
     @Override
-    public Map<String, Object> getMetricsSnapshot() {
-        Map<String, Object> snapshot = new HashMap<>();
-
-        snapshot.put("createdTasks", createdTasksCounter.count());
-        snapshot.put("completedTasks", completedTasksCounter.count());
-        snapshot.put("deletedTasks", deletedTasksCounter.count());
-        snapshot.put("activeTasks", activeTasksCount.get());
-        snapshot.put("totalCompleted", completedTasksTotal.get());
-
-        // Добавляем перцентили из таймеров
-        snapshot.put("creationTimeP50", taskCreationTimer.percentile(0.5, TimeUnit.MILLISECONDS));
-        snapshot.put("creationTimeP95", taskCreationTimer.percentile(0.95, TimeUnit.MILLISECONDS));
-        snapshot.put("completionTimeP50", taskCompletionTimer.percentile(0.5, TimeUnit.MILLISECONDS));
-        snapshot.put("completionTimeP95", taskCompletionTimer.percentile(0.95, TimeUnit.MILLISECONDS));
-
-        return snapshot;
+    public void recordTaskUpdateTime(long milliseconds) {
+        taskCreationTimer.record(milliseconds, TimeUnit.MILLISECONDS);
+        log.debug("Task update time recorded: {} ms", milliseconds);
     }
 }

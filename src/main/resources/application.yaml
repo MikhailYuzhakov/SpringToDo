@@ -12,7 +12,12 @@ spring:
   application:
     name: SpringToDo
   datasource:
-    url: jdbc:postgresql://localhost:5432/taskmanager
+    url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
-    password: 10031998
+    password: postgres
     driver-class-name: org.postgresql.Driver
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info

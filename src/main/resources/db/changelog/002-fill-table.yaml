@@ -8,7 +8,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: "1"
+                  autoIncrement: "true"
               - column:
                   name: title
                   value: "Новая задача № 1"
@@ -29,7 +29,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: "2"
+                  autoIncrement: "true"
               - column:
                   name: title
                   value: "Новая задача № 2"
@@ -50,7 +50,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: "3"
+                  autoIncrement: "true"
               - column:
                   name: title
                   value: "Новая задача № 3"
@@ -71,7 +71,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: "4"
+                  autoIncrement: "true"
               - column:
                   name: title
                   value: "Новая задача № 4"

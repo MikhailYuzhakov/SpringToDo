@@ -1,47 +1,54 @@
 package com.emobile.springtodo.controllers;
 
-import com.emobile.springtodo.dto.TaskDTO;
-import com.emobile.springtodo.model.Task;
+import com.emobile.springtodo.dto.ApiResponse;
+import com.emobile.springtodo.dto.TaskCreateRequest;
+import com.emobile.springtodo.dto.TaskResponse;
+import com.emobile.springtodo.dto.TaskUpdateRequest;
 import com.emobile.springtodo.services.TaskServiceInterface;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
 
 @RestController
+@Validated
+@RequiredArgsConstructor
 @RequestMapping("/api/tasks")
 public class TaskController {
     private final TaskServiceInterface service;
 
-    public TaskController(TaskServiceInterface service) {
-        this.service = service;
-    }
-
     @GetMapping
-    public List<Task> getAllTasks() {
-        return service.getAllTasks();
+    public ApiResponse<List<TaskResponse>> getAllTasks() {
+        return ApiResponse.ok(service.getAllTasks());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return ResponseEntity.ok(service.get(id));
+    public ApiResponse<TaskResponse> getTaskById(@Positive @PathVariable Long id) {
+        return ApiResponse.ok(service.get(id));
     }
 
     @PostMapping
-    public Task createTask(@RequestBody TaskDTO taskDTO) {
-        return service.create(taskDTO);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<TaskResponse> createTask(@Valid @RequestBody TaskCreateRequest taskCreateRequest) {
+        TaskResponse taskResponse = service.create(taskCreateRequest);
+        return ApiResponse.created(taskResponse);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody TaskDTO taskDetails) {
-        Task updatedTask = service.updateTask(id, taskDetails);
-        return ResponseEntity.ok(updatedTask);
+    public ApiResponse<TaskResponse> updateTask(@Positive @PathVariable Long id,
+                                                   @Valid @RequestBody TaskUpdateRequest taskUpdateRequest) {
+        return ApiResponse.ok(service.updateTask(id, taskUpdateRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTask(@PathVariable Long id) {
+    public ApiResponse<String> deleteTask(@Positive @PathVariable Long id) {
         service.deleteTask(id);
-        return ResponseEntity.ok("Task delete successfully");
+        return ApiResponse.ok("Task delete successfully");
     }
 }

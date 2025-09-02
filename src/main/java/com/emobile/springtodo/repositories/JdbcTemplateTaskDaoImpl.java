@@ -1,5 +1,6 @@
 package com.emobile.springtodo.repositories;
 
+import com.emobile.springtodo.exceptions.TaskNotFoundException;
 import com.emobile.springtodo.model.Task;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -38,9 +39,21 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
     }
 
     @Override
-    public void save(Task task) {
-        String SQL = "INSERT INTO tasks (title, description, completed, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
-        jdbcTemplate.update(SQL, task.getTitle(), task.getDescription(), task.isCompleted(), task.getCreated_at(), task.getUpdated_at());
+    public Task save(Task task) {
+        String sql = """
+            INSERT INTO tasks (title, description, completed, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?) RETURNING id
+        """;
+        Long id = jdbcTemplate.queryForObject(
+                sql, Long.class,
+                task.getTitle(),
+                task.getDescription(),
+                task.isCompleted(),
+                java.sql.Timestamp.valueOf(task.getCreated_at()),
+                java.sql.Timestamp.valueOf(task.getUpdated_at())
+        );
+        task.setId(id);
+        return task;
     }
 
     @Override
@@ -50,8 +63,24 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
     }
 
     @Override
-    public void update(Long id, Task task) {
-        String SQL = "UPDATE tasks SET title = ?, description = ?, completed = ?, created_at = ?, updated_at = ? WHERE id = ?";
-        jdbcTemplate.update(SQL, task.getTitle(), task.getDescription(), task.isCompleted(), task.getCreated_at(), task.getUpdated_at(), task.getId());
+    public Task update(Long id, Task task) {
+        String sql = "UPDATE tasks " +
+                "SET title = ?, description = ?, completed = ?, updated_at = ? " +
+                "WHERE id = ?";
+        int updated = jdbcTemplate.update(
+                sql,
+                task.getTitle(),
+                task.getDescription(),
+                task.isCompleted(),
+                java.sql.Timestamp.valueOf(task.getUpdated_at()),
+                id
+        );
+
+        if (updated == 0) {
+            throw new TaskNotFoundException("Task not found with id " + id);
+        }
+
+        task.setId(id);
+        return task;
     }
 }

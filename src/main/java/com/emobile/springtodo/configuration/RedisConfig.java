@@ -1,6 +1,9 @@
 package com.emobile.springtodo.configuration;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -8,8 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -21,37 +22,50 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig {
 
-    @Value("${spring.redis.host}")
-    private String redisHost;
-
-    @Value("${spring.redis.port}")
-    private int redisPort;
-
     @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
-        return new LettuceConnectionFactory(config);
-    }
-
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        return template;
-    }
-
-    @Bean
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1))
-                .disableCachingNullValues()
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
-
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
+    public GenericJackson2JsonRedisSerializer redisJsonSerializer() {
+        ObjectMapper om = JsonMapper.builder()
+                .findAndAddModules() // JavaTimeModule и др.
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .build();
+
+        // Важно: включаем type info, чтобы при чтении восстанавливался TaskResponse, а не LinkedHashMap
+        om.activateDefaultTyping(
+                BasicPolymorphicTypeValidator.builder()
+                        .allowIfSubType("com.emobile.springtodo") // ограничь своими пакетами
+                        .allowIfSubType("java.util")
+                        .build(),
+                ObjectMapper.DefaultTyping.NON_FINAL
+        );
+
+        return new GenericJackson2JsonRedisSerializer(om);
+    }
+
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory cf,
+                                     GenericJackson2JsonRedisSerializer jsonSer) {
+        RedisCacheConfiguration base = RedisCacheConfiguration.defaultCacheConfig()
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSer))
+                .disableCachingNullValues()
+                .computePrefixWith(name -> "todo:" + name + "::")
+                .entryTtl(Duration.ofMinutes(30));
+
+        return RedisCacheManager.builder(cf)
+                .cacheDefaults(base)
+                .transactionAware()
+                .build();
+    }
+
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory cf,
+                                                       GenericJackson2JsonRedisSerializer jsonSer) {
+        RedisTemplate<String, Object> tpl = new RedisTemplate<>();
+        tpl.setConnectionFactory(cf);
+        tpl.setKeySerializer(new StringRedisSerializer());
+        tpl.setValueSerializer(jsonSer);
+        tpl.setHashKeySerializer(new StringRedisSerializer());
+        tpl.setHashValueSerializer(jsonSer);
+        return tpl;
     }
 }
