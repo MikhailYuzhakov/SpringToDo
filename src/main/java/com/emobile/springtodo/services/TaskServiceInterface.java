@@ -9,8 +9,8 @@ import org.springframework.cache.annotation.Caching;
 import java.util.List;
 
 public interface TaskServiceInterface {
-    public List<TaskResponse> getAllTasks();
-    public TaskResponse get(Long taskId);
+    List<TaskResponse> getAllTasks(int limit, int offset);
+    TaskResponse get(Long taskId);
 
     TaskResponse create(TaskCreateRequest taskCreateRequest);
 

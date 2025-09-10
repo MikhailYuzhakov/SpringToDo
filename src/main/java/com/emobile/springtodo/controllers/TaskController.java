@@ -7,7 +7,9 @@ import com.emobile.springtodo.dto.TaskUpdateRequest;
 import com.emobile.springtodo.services.TaskServiceInterface;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @Validated
 @RequiredArgsConstructor
@@ -24,8 +27,12 @@ public class TaskController {
     private final TaskServiceInterface service;
 
     @GetMapping
-    public ApiResponse<List<TaskResponse>> getAllTasks() {
-        return ApiResponse.ok(service.getAllTasks());
+    public ApiResponse<List<TaskResponse>> getAllTasks(
+            @RequestParam(defaultValue = "10") @Positive int limit,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int offset) {
+        log.warn("getAllTask() controller");
+        List<TaskResponse> taskResponses = service.getAllTasks(limit, offset);
+        return ApiResponse.ok(taskResponses);
     }
 
     @GetMapping("/{id}")

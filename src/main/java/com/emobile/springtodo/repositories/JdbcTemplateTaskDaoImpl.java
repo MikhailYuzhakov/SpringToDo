@@ -3,6 +3,7 @@ package com.emobile.springtodo.repositories;
 import com.emobile.springtodo.exceptions.TaskNotFoundException;
 import com.emobile.springtodo.model.Task;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class JdbcTemplateTaskDaoImpl implements TaskDao {
@@ -17,11 +19,12 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public Optional<List<Task>> findAll() {
-        String SQL = "SELECT * FROM tasks";
+    public Optional<List<Task>> findAllWithPagination(int limit, int offset) {
+        String SQL = "SELECT * FROM tasks ORDER BY id LIMIT ? OFFSET ?";
         try {
-            List<Task> task = jdbcTemplate.query(SQL, new RowMapperImpl());
-            return Optional.of(task);
+            List<Task> tasks = jdbcTemplate.query(SQL, new RowMapperImpl(), limit, offset);
+            log.info("repo task = {}", tasks);
+            return Optional.of(tasks);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }

@@ -7,7 +7,7 @@ import java.util.Optional;
 
 
 public interface TaskDao {
-    Optional<List<Task>> findAll();
+    Optional<List<Task>> findAllWithPagination(int limit, int offset);
     Optional<Task> findById(Long id);
     Task save(Task task);
     void delete(Task task);

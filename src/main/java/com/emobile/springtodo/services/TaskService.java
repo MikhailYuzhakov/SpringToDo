@@ -13,12 +13,16 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -30,10 +34,15 @@ public class TaskService implements TaskServiceInterface {
 
     @Override
     @Cacheable(value = "tasks", key = "'all'", sync = true)
-    public List<TaskResponse> getAllTasks() {
-        List<Task> tasks = taskRepository.findAll()
-                .orElseThrow(() -> new TaskNotFoundException("Tasks not found"));
-        return tasks.stream().map(taskMapper::toResponse).toList();
+    public List<TaskResponse> getAllTasks(int limit, int offset) {
+        log.info("log getAllTasks()");
+        Optional<List<Task>> tasksOptional = taskRepository.findAllWithPagination(limit, offset);
+        List<Task> tasksk = tasksOptional.orElse(List.of());
+        log.info("service = {}", tasksk);
+        return tasksOptional.orElse(List.of())
+                .stream()
+                .map(taskMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
