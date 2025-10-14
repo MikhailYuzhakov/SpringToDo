@@ -1,9 +1,6 @@
 package com.emobile.springtodo.controllers;
 
-import com.emobile.springtodo.dto.ApiResponse;
-import com.emobile.springtodo.dto.TaskCreateRequest;
-import com.emobile.springtodo.dto.TaskResponse;
-import com.emobile.springtodo.dto.TaskUpdateRequest;
+import com.emobile.springtodo.dto.*;
 import com.emobile.springtodo.services.TaskServiceInterface;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -16,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -27,12 +25,20 @@ public class TaskController {
     private final TaskServiceInterface service;
 
     @GetMapping
-    public ApiResponse<List<TaskResponse>> getAllTasks(
+    public ApiResponse<PageResponse<TaskResponse>> getAllTasks(
             @RequestParam(defaultValue = "10") @Positive int limit,
             @RequestParam(defaultValue = "0") @PositiveOrZero int offset) {
-        log.warn("getAllTask() controller");
-        List<TaskResponse> taskResponses = service.getAllTasks(limit, offset);
-        return ApiResponse.ok(taskResponses);
+
+        PaginatedResult<TaskResponse> taskResponses = service.getAllTasks(limit, offset);
+
+        PageResponse<TaskResponse> pageResponse = new PageResponse<>(
+                taskResponses.items(),
+                offset / limit,
+                limit,
+                taskResponses.totalCount()
+        );
+
+        return ApiResponse.ok(pageResponse);
     }
 
     @GetMapping("/{id}")

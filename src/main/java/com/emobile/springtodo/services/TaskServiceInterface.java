@@ -1,5 +1,6 @@
 package com.emobile.springtodo.services;
 
+import com.emobile.springtodo.dto.PaginatedResult;
 import com.emobile.springtodo.dto.TaskCreateRequest;
 import com.emobile.springtodo.dto.TaskResponse;
 import com.emobile.springtodo.dto.TaskUpdateRequest;
@@ -9,7 +10,7 @@ import org.springframework.cache.annotation.Caching;
 import java.util.List;
 
 public interface TaskServiceInterface {
-    List<TaskResponse> getAllTasks(int limit, int offset);
+    PaginatedResult<TaskResponse> getAllTasks(int limit, int offset);
     TaskResponse get(Long taskId);
 
     TaskResponse create(TaskCreateRequest taskCreateRequest);
@@ -25,5 +26,4 @@ public interface TaskServiceInterface {
     int countTaskByStatus(boolean isCompleted);
 
     void deleteTask(Long id);
-
 }

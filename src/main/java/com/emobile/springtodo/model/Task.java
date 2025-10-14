@@ -5,7 +5,8 @@ import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Task {

@@ -1,5 +1,6 @@
 package com.emobile.springtodo.services;
 
+import com.emobile.springtodo.dto.PaginatedResult;
 import com.emobile.springtodo.dto.TaskCreateRequest;
 import com.emobile.springtodo.dto.TaskResponse;
 import com.emobile.springtodo.dto.TaskUpdateRequest;
@@ -28,12 +29,16 @@ public class TaskService implements TaskServiceInterface {
 
     @Override
     @Cacheable(value = "tasks", key = "'all'", sync = true)
-    public List<TaskResponse> getAllTasks(int limit, int offset) {
+    public PaginatedResult<TaskResponse> getAllTasks(int limit, int offset) {
         Optional<List<Task>> tasksOptional = taskRepository.findAllWithPagination(limit, offset);
-        return tasksOptional.orElse(List.of())
+        List<TaskResponse> taskResponses = tasksOptional.orElse(List.of())
                 .stream()
                 .map(taskMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
+
+        int totalCount = taskRepository.countTasks();
+
+        return new PaginatedResult<>(taskResponses, totalCount);
     }
 
     @Override

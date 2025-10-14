@@ -54,6 +54,13 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
     }
 
     @Override
+    public Integer countTasks() {
+        String SQL = "SELECT COUNT(*) FROM tasks";
+        Integer count = jdbcTemplate.queryForObject(SQL, Integer.class);
+        return (count != null) ? count : 0;
+    }
+
+    @Override
     public Task save(Task task) {
         String sql = """
             INSERT INTO tasks (title, description, completed, created_at, updated_at)
