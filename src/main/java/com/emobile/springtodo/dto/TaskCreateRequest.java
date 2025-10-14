@@ -1,10 +1,12 @@
 package com.emobile.springtodo.dto;
 
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 
 @Data
+@AllArgsConstructor
 public class TaskCreateRequest {
 
     @NotBlank(message = "Title is required")

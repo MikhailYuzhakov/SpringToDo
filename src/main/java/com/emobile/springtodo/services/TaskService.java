@@ -13,13 +13,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,15 +25,11 @@ import java.util.stream.Collectors;
 public class TaskService implements TaskServiceInterface {
     private final TaskDao taskRepository;
     private final TaskMapper taskMapper;
-    private final MetricsService metricsService;
 
     @Override
     @Cacheable(value = "tasks", key = "'all'", sync = true)
     public List<TaskResponse> getAllTasks(int limit, int offset) {
-        log.info("log getAllTasks()");
         Optional<List<Task>> tasksOptional = taskRepository.findAllWithPagination(limit, offset);
-        List<Task> tasksk = tasksOptional.orElse(List.of());
-        log.info("service = {}", tasksk);
         return tasksOptional.orElse(List.of())
                 .stream()
                 .map(taskMapper::toResponse)
@@ -64,19 +55,9 @@ public class TaskService implements TaskServiceInterface {
     )
     @Override
     public TaskResponse create(TaskCreateRequest taskCreateRequest) {
-        long start = System.currentTimeMillis();
-        try {
-            log.info("Creating new todo: {}", taskCreateRequest.getTitle());
             Task task = taskMapper.toEntity(taskCreateRequest);
             Task newTask = taskRepository.save(task);
-
-            metricsService.incrementCreatedTasks();
-            metricsService.recordTaskMetrics(task);
-
             return taskMapper.toResponse(newTask);
-        } finally {
-            metricsService.recordTaskCreationTime(System.currentTimeMillis() - start);
-        }
     }
 
     @Transactional
@@ -90,20 +71,16 @@ public class TaskService implements TaskServiceInterface {
     )
     @Override
     public TaskResponse updateTask(Long id, TaskUpdateRequest taskDetails) {
-        long start = System.currentTimeMillis();
-        try {
-            log.info("Updating task with id: {}", id);
-            Task task = taskRepository.findById(id)
-                    .orElseThrow(() -> new TaskNotFoundException("Task not found with id " + id));
+        log.info("Updating task with id: {}", id);
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id " + id));
 
-            taskMapper.updateEntityFromRequest(taskDetails, task);
-            Task updatedTask = taskRepository.update(id, task);
+        taskMapper.updateEntityFromRequest(taskDetails, task);
+        Task updatedTask = taskRepository.update(id, task);
 
-            log.info("Task updated successfully: {}", id);
-            return taskMapper.toResponse(updatedTask);
-        } finally {
-            metricsService.recordTaskUpdateTime(System.currentTimeMillis() - start);
-        }
+        log.info("Task updated successfully: {}", id);
+        return taskMapper.toResponse(updatedTask);
+
     }
 
     @Transactional
@@ -118,6 +95,12 @@ public class TaskService implements TaskServiceInterface {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with id " + id));
         taskRepository.delete(task);
-        metricsService.incrementDeletedTasks();
+    }
+
+    @Override
+    public int countTaskByStatus(boolean isCompleted) {
+        List<Task> tasks = taskRepository.findAllByStatus(isCompleted)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with status " + isCompleted));
+        return tasks.size();
     }
 }

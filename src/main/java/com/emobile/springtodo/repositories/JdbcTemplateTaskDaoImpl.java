@@ -42,6 +42,18 @@ public class JdbcTemplateTaskDaoImpl implements TaskDao {
     }
 
     @Override
+    public Optional<List<Task>> findAllByStatus(boolean isCompleted) {
+        String SQL = "SELECT * FROM tasks WHERE completed = ?";
+        try {
+            List<Task> tasks = jdbcTemplate.query(SQL, new RowMapperImpl(), isCompleted);
+            log.info("tasks with status {} : {}", isCompleted, tasks);
+            return Optional.of(tasks);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Task save(Task task) {
         String sql = """
             INSERT INTO tasks (title, description, completed, created_at, updated_at)

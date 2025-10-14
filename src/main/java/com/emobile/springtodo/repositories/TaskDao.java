@@ -12,4 +12,5 @@ public interface TaskDao {
     Task save(Task task);
     void delete(Task task);
     Task update(Long id, Task task);
+    public Optional<List<Task>> findAllByStatus(boolean isCompleted);
 }

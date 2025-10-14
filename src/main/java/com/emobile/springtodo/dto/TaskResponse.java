@@ -32,4 +32,11 @@ public class TaskResponse {
 
     @NotNull
     private LocalDateTime updatedAt;
+
+    public TaskResponse(Long id, String title, String description, Boolean completed) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.completed = completed;
+    }
 }

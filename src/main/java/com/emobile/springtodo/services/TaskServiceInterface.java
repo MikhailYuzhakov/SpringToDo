@@ -22,6 +22,8 @@ public interface TaskServiceInterface {
     })
     TaskResponse updateTask(Long id, TaskUpdateRequest taskDetails);
 
-    public void deleteTask(Long id);
+    int countTaskByStatus(boolean isCompleted);
+
+    void deleteTask(Long id);
 
 }

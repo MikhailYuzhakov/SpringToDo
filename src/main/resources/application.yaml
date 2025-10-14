@@ -1,3 +1,13 @@
+server:
+  port: 8082
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+#logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
 spring:
   redis:
     host: localhost
@@ -20,4 +30,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,info
+        include: health,metrics,info,prometheus
