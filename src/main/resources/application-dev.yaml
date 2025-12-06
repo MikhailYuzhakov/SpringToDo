@@ -1,0 +1,32 @@
+server:
+  port: 8082
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    password: Qwerty123
+    database: 0
+    embedded: false
+  cache:
+    type: redis
+    time-to-live: 3600000
+    cache-null-values: false
+  application:
+    name: SpringToDo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,prometheus

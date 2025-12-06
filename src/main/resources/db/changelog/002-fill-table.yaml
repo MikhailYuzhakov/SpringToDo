@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: yuzhakovmikhail
+      changes:
+        - insert:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  autoIncrement: "true"
+              - column:
+                  name: title
+                  value: "Новая задача № 1"
+              - column:
+                  name: description
+                  value: "Необходимо организовать..."
+              - column:
+                  name: completed
+                  value: "false"
+              - column:
+                  name: created_at
+                  value: "2025-05-25"
+              - column:
+                  name: updated_at
+                  value: "2025-06-25"
+        - insert:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  autoIncrement: "true"
+              - column:
+                  name: title
+                  value: "Новая задача № 2"
+              - column:
+                  name: description
+                  value: "Необходимо спланировать..."
+              - column:
+                  name: completed
+                  value: "false"
+              - column:
+                  name: created_at
+                  value: "2024-05-25"
+              - column:
+                  name: updated_at
+                  value: "2024-06-25"
+        - insert:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  autoIncrement: "true"
+              - column:
+                  name: title
+                  value: "Новая задача № 3"
+              - column:
+                  name: description
+                  value: "Необходимо удалить..."
+              - column:
+                  name: completed
+                  value: "true"
+              - column:
+                  name: created_at
+                  value: "2025-07-28"
+              - column:
+                  name: updated_at
+                  value: "2025-07-30"
+        - insert:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  autoIncrement: "true"
+              - column:
+                  name: title
+                  value: "Новая задача № 4"
+              - column:
+                  name: description
+                  value: "Необходимо обновить..."
+              - column:
+                  name: completed
+                  value: "false"
+              - column:
+                  name: created_at
+                  value: "2025-07-23"
+              - column:
+                  name: updated_at
+                  value: "2025-07-27"
